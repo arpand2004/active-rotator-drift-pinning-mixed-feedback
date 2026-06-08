@@ -4,14 +4,7 @@ This repository contains simulation scripts, processed data, and figures for the
 
 The model studied is a coupled active-rotator system of the form
 
-\[
-\dot{\theta_i} = \omega -
-A_i \sin\theta_i
-+
-\frac{K}{N-1}
-\sum_{j\neq i}
-\sin(\theta_j-\theta_i),
-\]
+\dot{\theta_i} = \omega - A_i \sin\theta_i + \frac{K}{N-1} \sum_{j\neq i} \sin(\theta_j-\theta_i),
 
 where the local feedback amplitudes \(A_i\) are drawn from a zero-mean distribution. The scripts reproduce the figures associated with local fixed-point structure and wrapped time series, drift/pinning regime maps, analytical benchmarks, finite-size effects, and the zero-mean intrinsic-frequency extension.
 
