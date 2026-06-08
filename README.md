@@ -5,7 +5,7 @@ This repository contains simulation scripts, processed data, and figures for the
 The model studied is a coupled active-rotator system of the form
 
 \[
-\dot{\theta}_i = \omega -
+\dot{\theta_i} = \omega -
 A_i \sin\theta_i
 +
 \frac{K}{N-1}
