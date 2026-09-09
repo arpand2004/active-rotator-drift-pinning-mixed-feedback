@@ -18,7 +18,7 @@ plt.rcParams.update({
     "xtick.labelsize": 11,
     "ytick.labelsize": 11,
     "legend.fontsize": 11.2,
-    "axes.linewidth": 1.1,
+    "axes.linewidth": 1.15,
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
     "mathtext.fontset": "dejavusans",
@@ -112,7 +112,9 @@ def draw_unit_circle(ax):
     ax.set_yticks([])
 
     for spine in ax.spines.values():
-        spine.set_visible(False)
+        spine.set_visible(True)
+        spine.set_color("black")
+        spine.set_linewidth(1.15)
 
 
 def draw_flow_arrows(ax, a, color, radius=1.0, n_arrows=24,
@@ -256,7 +258,7 @@ draw_fixed_point(ax1, theta_u_pos, c_pos_unstable)
 draw_fixed_point(ax1, theta_s_neg, c_neg_stable)
 draw_fixed_point(ax1, theta_u_neg, c_neg_unstable)
 
-ax1.set_title(r"Two fixed points: $|a|>1$")
+ax1.set_title(r"(a) Two fixed points: $|a|>1$")
 
 
 draw_unit_circle(ax2)
@@ -289,7 +291,7 @@ theta_c_neg = 3.0 * np.pi / 2.0
 draw_fixed_point(ax2, theta_c_pos, c_crit_pos, size=155)
 draw_fixed_point(ax2, theta_c_neg, c_crit_neg, size=155)
 
-ax2.set_title(r"Critical fixed point: $|a|=1$")
+ax2.set_title(r"(b) Critical fixed point: $|a|=1$")
 
 
 draw_unit_circle(ax3)
@@ -317,7 +319,7 @@ ax3.scatter(
     zorder=4,
 )
 
-ax3.set_title(r"No fixed point: $|a|<1$")
+ax3.set_title(r"(c) No fixed point: $|a|<1$")
 
 
 handles = [
@@ -495,7 +497,7 @@ bx1.text(
     bbox=text_box,
 )
 
-bx1.set_title(r"Locked ($a=1.5$)")
+bx1.set_title(r"(a) Locked ($a=1.5$)")
 bx1.set_xlabel(r"$t$")
 bx1.set_ylabel(r"$\theta_i\;(\mathrm{mod}\;2\pi)$")
 bx1.set_xlim(0, T_plot_locked)
@@ -525,7 +527,7 @@ bx2.text(
     bbox=text_box,
 )
 
-bx2.set_title(r"Critical ($a=1$)")
+bx2.set_title(r"(b) Critical ($a=1$)")
 bx2.set_xlabel(r"$t$")
 bx2.set_xlim(0, T_plot_crit)
 bx2.set_ylim(0, 2*np.pi)
@@ -541,7 +543,7 @@ for i in range(N_ts):
         color=traj_colors[i],
     )
 
-bx3.set_title(r"Drifting ($a=0.5$)")
+bx3.set_title(r"(c) Drifting ($a=0.5$)")
 bx3.set_xlabel(r"$t$")
 bx3.set_xlim(0, T_plot_drift)
 bx3.set_ylim(0, 2*np.pi)
@@ -550,8 +552,22 @@ set_phase_ticks(bx3)
 
 for ax in axes2:
     ax.grid(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_color("black")
+        spine.set_linewidth(1.15)
+
+    ax.tick_params(
+        axis="both",
+        which="both",
+        direction="out",
+        top=False,
+        right=False,
+        colors="black",
+        width=1.05,
+        length=4.5,
+    )
 
 fig2.tight_layout(rect=[0, 0.02, 1, 1.00])
 
