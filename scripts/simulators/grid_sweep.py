@@ -8,25 +8,13 @@ from dataclasses import dataclass, asdict
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
-RUN_SIMULATION = True
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = REPO_ROOT / "data"
-FIGURES_DIR = REPO_ROOT / "figures"
-
+DATA_DIR = REPO_ROOT / "data" / "n100"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
-FIGURE_3_DATA = DATA_DIR / "figure_3.csv"
-FIGURE_4_DATA = DATA_DIR / "figure_4.csv"
-
-FIGURE_3_PNG = FIGURES_DIR / "figure_3.png"
-FIGURE_3_PDF = FIGURES_DIR / "figure_3.pdf"
-FIGURE_4_PNG = FIGURES_DIR / "figure_4.png"
-FIGURE_4_PDF = FIGURES_DIR / "figure_4.pdf"
+DRIFT_MAP_PATH = DATA_DIR / "drift_map.csv"
+DRIFT_FRACTIONS_PATH = DATA_DIR / "drift_fractions.csv"
 
 
 @dataclass(frozen=True)
@@ -53,9 +41,8 @@ class Config:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate Figures 3 and 4.")
+    parser = argparse.ArgumentParser(description="Generate N=100 drift-map and drift-fraction datasets.")
 
-    parser.add_argument("--plot-only", action="store_true")
 
     parser.add_argument("--N", type=int, default=Config.N)
     parser.add_argument("--omega", type=float, default=Config.omega)
@@ -102,7 +89,7 @@ def parse_args():
         seed=args.seed,
     )
 
-    return cfg, args.jobs, args.plot_only
+    return cfg, args.jobs
 
 
 def simulate_sigma_trial(job):
@@ -205,7 +192,7 @@ def run_sweep(cfg, jobs):
     return sigma_ratios, K_ratios, maps
 
 
-def save_figure_3_data(sigma_ratios, K_ratios, maps):
+def save_drift_map_data(sigma_ratios, K_ratios, maps):
     rows = []
     D = maps["mean_abs_drift_over_omega"]
 
@@ -214,7 +201,7 @@ def save_figure_3_data(sigma_ratios, K_ratios, maps):
             rows.append([sigma_ratio, K_ratio, D[ik, isg]])
 
     np.savetxt(
-        FIGURE_3_DATA,
+        DRIFT_MAP_PATH,
         np.asarray(rows, dtype=float),
         delimiter=",",
         header="sigma_A_over_omega,K_over_omega,D",
@@ -223,7 +210,7 @@ def save_figure_3_data(sigma_ratios, K_ratios, maps):
     )
 
 
-def save_figure_4_data(sigma_ratios, K_ratios, maps):
+def save_drift_fraction_data(sigma_ratios, K_ratios, maps):
     rows = []
 
     f_plus = maps["positive_fraction"]
@@ -234,7 +221,7 @@ def save_figure_4_data(sigma_ratios, K_ratios, maps):
             rows.append([sigma_ratio, K_ratio, f_plus[ik, isg], f_minus[ik, isg]])
 
     np.savetxt(
-        FIGURE_4_DATA,
+        DRIFT_FRACTIONS_PATH,
         np.asarray(rows, dtype=float),
         delimiter=",",
         header="sigma_A_over_omega,K_over_omega,positive_fraction,negative_fraction",
@@ -243,194 +230,26 @@ def save_figure_4_data(sigma_ratios, K_ratios, maps):
     )
 
 
-def set_plot_style():
-    plt.rcParams.update({
-        "figure.dpi": 120,
-        "savefig.dpi": 600,
-        "font.family": "DejaVu Sans",
-        "font.sans-serif": ["DejaVu Sans"],
-        "mathtext.fontset": "dejavusans",
-        "font.size": 12,
-        "axes.labelsize": 16,
-        "axes.titlesize": 18,
-        "xtick.labelsize": 12,
-        "ytick.labelsize": 12,
-        "axes.linewidth": 1.2,
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-    })
-
-
-def load_grid_from_csv(filename, value_columns):
-    df = pd.read_csv(filename)
-
-    x = np.sort(df["sigma_A_over_omega"].unique())
-    y = np.sort(df["K_over_omega"].unique())
-
-    out = {}
-    for col in value_columns:
-        pivot = df.pivot(index="K_over_omega", columns="sigma_A_over_omega", values=col)
-        pivot = pivot.reindex(index=y, columns=x)
-        out[col] = pivot.to_numpy()
-
-    return x, y, out
-
-
-def style_main_axes(ax):
-    ax.grid(False)
-    ax.set_xticks(np.arange(0, 7, 1))
-    ax.set_yticks(np.arange(0, 7, 1))
-
-    for spine in ax.spines.values():
-        spine.set_visible(True)
-        spine.set_color("black")
-        spine.set_linewidth(1.2)
-
-    ax.tick_params(
-        axis="both",
-        which="both",
-        direction="out",
-        top=False,
-        right=False,
-        colors="black",
-        width=1.1,
-        length=4.5,
-    )
-
-
-def style_inset_axes_white(ax):
-    for spine in ax.spines.values():
-        spine.set_visible(True)
-        spine.set_color("white")
-        spine.set_linewidth(1.0)
-
-    ax.tick_params(
-        axis="both",
-        which="both",
-        direction="out",
-        colors="white",
-        width=0.9,
-        length=3.0,
-        labelsize=8,
-    )
-
-
-def make_figure_3():
-    sigma_vals, kappa_vals, data = load_grid_from_csv(FIGURE_3_DATA, ["D"])
-    D = data["D"]
-
-    fig, ax = plt.subplots(figsize=(9.2, 6.8), constrained_layout=True)
-
-    im = ax.pcolormesh(
-        sigma_vals,
-        kappa_vals,
-        D,
-        shading="auto",
-        cmap="bone",
-        vmin=0.0,
-        vmax=1.05,
-        rasterized=True,
-    )
-
-    ax.set_xlabel(r"$r$", fontsize=20)
-    ax.set_ylabel(r"$\kappa$", fontsize=20)
-    ax.set_xlim(0, 6)
-    ax.set_ylim(0, 6)
-    style_main_axes(ax)
-
-    cbar = fig.colorbar(im, ax=ax, pad=0.018)
-    cbar.set_label(r"$D$", fontsize=20)
-    cbar.set_ticks(np.arange(0.0, 1.01, 0.2))
-
-    fig.savefig(FIGURE_3_PNG, dpi=600, bbox_inches="tight")
-    fig.savefig(FIGURE_3_PDF, dpi=600, bbox_inches="tight")
-    plt.close(fig)
-
-
-def make_figure_4():
-    sigma_vals, kappa_vals, data = load_grid_from_csv(
-        FIGURE_4_DATA,
-        ["positive_fraction", "negative_fraction"]
-    )
-
-    f_plus = data["positive_fraction"]
-    f_minus = data["negative_fraction"]
-
-    fig, ax = plt.subplots(figsize=(9.2, 6.8), constrained_layout=True)
-
-    im = ax.pcolormesh(
-        sigma_vals,
-        kappa_vals,
-        f_plus,
-        shading="auto",
-        cmap="Reds",
-        vmin=0.0,
-        vmax=1.0,
-        rasterized=True,
-    )
-
-    ax.set_xlabel(r"$r$", fontsize=20)
-    ax.set_ylabel(r"$\kappa$", fontsize=20)
-    ax.set_xlim(0, 6)
-    ax.set_ylim(0, 6)
-    style_main_axes(ax)
-
-    cbar = fig.colorbar(im, ax=ax, pad=0.018)
-    cbar.set_label(r"$f +$", fontsize=20)
-    cbar.set_ticks(np.arange(0.0, 1.01, 0.2))
-
-    axins = ax.inset_axes([0.07, 0.62, 0.29, 0.29])
-    cax_in = ax.inset_axes([0.385, 0.62, 0.022, 0.29])
-
-    neg_vmax = float(np.nanmax(f_minus))
-    neg_vmax = max(0.4, np.ceil(neg_vmax / 0.2) * 0.2)
-
-    im_in = axins.pcolormesh(
-        sigma_vals,
-        kappa_vals,
-        f_minus,
-        shading="auto",
-        cmap="Greys",
-        vmin=0.0,
-        vmax=neg_vmax,
-        rasterized=True,
-    )
-
-    axins.set_xlim(0, 6)
-    axins.set_ylim(0, 6)
-    axins.set_xticks([0, 2, 4, 6])
-    axins.set_yticks([0, 2, 4, 6])
-
-    style_inset_axes_white(axins)
-
-    axins.set_title(r"$f -$", fontsize=12, color="white", pad=2)
-
-    cbar_in = fig.colorbar(im_in, cax=cax_in)
-    cbar_in.set_ticks(np.arange(0.0, neg_vmax + 0.001, 0.2))
-    cbar_in.ax.tick_params(labelsize=8, colors="white")
-    cbar_in.outline.set_edgecolor("white")
-    cbar_in.outline.set_linewidth(1.0)
-
-    for spine in cax_in.spines.values():
-        spine.set_color("white")
-        spine.set_linewidth(1.0)
-
-    fig.savefig(FIGURE_4_PNG, dpi=600, bbox_inches="tight")
-    fig.savefig(FIGURE_4_PDF, dpi=600, bbox_inches="tight")
-    plt.close(fig)
-
-
 def main():
-    cfg, jobs, plot_only = parse_args()
+    cfg, jobs = parse_args()
 
-    if RUN_SIMULATION and not plot_only:
-        sigma_ratios, K_ratios, maps = run_sweep(cfg, jobs)
-        save_figure_3_data(sigma_ratios, K_ratios, maps)
-        save_figure_4_data(sigma_ratios, K_ratios, maps)
+    sigma_ratios, K_ratios, maps = run_sweep(cfg, jobs)
 
-    set_plot_style()
-    make_figure_3()
-    make_figure_4()
+    save_drift_map_data(
+        sigma_ratios,
+        K_ratios,
+        maps,
+    )
+
+    save_drift_fraction_data(
+        sigma_ratios,
+        K_ratios,
+        maps,
+    )
+
+    print("\nGrid-sweep datasets saved:")
+    print(f"  {DRIFT_MAP_PATH}")
+    print(f"  {DRIFT_FRACTIONS_PATH}")
 
 
 if __name__ == "__main__":

@@ -16,18 +16,14 @@ RUN_SIMULATION = True
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = REPO_ROOT / "data"
-FIGURES_DIR = REPO_ROOT / "figures"
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
-DATA_7_PATH = DATA_DIR / "figure_7.csv"
-DATA_8_PATH = DATA_DIR / "figure_8.csv"
+FINITE_SIZE_DIR = DATA_DIR / "finite_size"
+FINITE_SIZE_DIR.mkdir(parents=True, exist_ok=True)
 
-FIGURE_7_PNG = FIGURES_DIR / "figure_7.png"
-FIGURE_7_PDF = FIGURES_DIR / "figure_7.pdf"
-FIGURE_8_PNG = FIGURES_DIR / "figure_8.png"
-FIGURE_8_PDF = FIGURES_DIR / "figure_8.pdf"
+DRIFT_VS_KAPPA_PATH = FINITE_SIZE_DIR / "drift_vs_kappa.csv"
+COUPLING_WINDOWS_PATH = FINITE_SIZE_DIR / "coupling_windows.csv"
 
 
 @dataclass(frozen=True)
@@ -58,15 +54,14 @@ class Config:
         3.5, 4.0, 4.5, 5.0, 5.5, 6.0
     )
 
-    fig8_r_values: tuple = (1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+    window_r_values: tuple = (1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
 
     seed: int = 55500
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate Figures 7 and 8.")
+    parser = argparse.ArgumentParser(description="Generate finite-size simulation datasets used by Figure 7.")
 
-    parser.add_argument("--plot-only", action="store_true")
 
     parser.add_argument("--omega", type=float, default=Config.omega)
 
@@ -100,10 +95,10 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--fig8-r-values",
+        "--window-r-values",
         type=float,
         nargs="+",
-        default=list(Config.fig8_r_values),
+        default=list(Config.window_r_values),
     )
 
     parser.add_argument("--r-fixed-for-curve", type=float, default=Config.r_fixed_for_curve)
@@ -133,11 +128,11 @@ def parse_args():
         N_values=tuple(args.N_values),
         r_fixed_for_curve=args.r_fixed_for_curve,
         r_values=tuple(args.r_values),
-        fig8_r_values=tuple(args.fig8_r_values),
+        window_r_values=tuple(args.window_r_values),
         seed=args.seed,
     )
 
-    return cfg, args.jobs, args.plot_only
+    return cfg, args.jobs
 
 
 FINITE_SIZE_COLORS = {
@@ -396,7 +391,7 @@ def run_combined_sweep(cfg, jobs):
     }
 
 
-def save_figure_7_data(cfg, K_ratios, N_values, D_curve_mean_fixed_r, D_curve_std_fixed_r):
+def save_drift_vs_kappa_data(cfg, K_ratios, N_values, D_curve_mean_fixed_r, D_curve_std_fixed_r):
     fieldnames = [
         "N",
         "kappa",
@@ -411,7 +406,7 @@ def save_figure_7_data(cfg, K_ratios, N_values, D_curve_mean_fixed_r, D_curve_st
         "late_fraction",
     ]
 
-    with open(DATA_7_PATH, mode="w", newline="") as f:
+    with open(DRIFT_VS_KAPPA_PATH, mode="w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -435,7 +430,7 @@ def save_figure_7_data(cfg, K_ratios, N_values, D_curve_mean_fixed_r, D_curve_st
                 })
 
 
-def save_figure_8_data(
+def save_coupling_windows_data(
     cfg,
     r_values,
     N_values,
@@ -472,7 +467,7 @@ def save_figure_8_data(
         "high_kappa_max",
     ]
 
-    with open(DATA_8_PATH, mode="w", newline="") as f:
+    with open(COUPLING_WINDOWS_PATH, mode="w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -509,434 +504,34 @@ def save_figure_8_data(
                 })
 
 
-def set_plot_style():
-    plt.rcParams.update({
-        "figure.dpi": 130,
-        "savefig.dpi": 600,
-        "font.family": "DejaVu Sans",
-        "font.sans-serif": ["DejaVu Sans"],
-        "mathtext.fontset": "dejavusans",
-        "font.size": 12,
-        "axes.labelsize": 16,
-        "axes.titlesize": 17,
-        "xtick.labelsize": 12,
-        "ytick.labelsize": 12,
-        "legend.fontsize": 11,
-        "axes.linewidth": 1.2,
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-    })
-
-
-def style_axes(ax):
-    ax.grid(False)
-
-    for spine in ax.spines.values():
-        spine.set_visible(True)
-        spine.set_color("black")
-        spine.set_linewidth(1.2)
-
-    ax.tick_params(
-        axis="both",
-        which="both",
-        direction="out",
-        top=False,
-        right=False,
-        colors="black",
-        width=1.1,
-        length=4.5,
-    )
-
-
-def require_columns(df, required, filename):
-    missing = [col for col in required if col not in df.columns]
-
-    if missing:
-        raise KeyError(
-            f"{filename} is missing required columns: {missing}\n"
-            f"Available columns are:\n{list(df.columns)}"
-        )
-
-
-def padded_limits(values, frac=0.08, min_pad=0.02):
-    values = np.asarray(values, dtype=float)
-    values = values[np.isfinite(values)]
-
-    if len(values) == 0:
-        return -0.1, 1.0
-
-    ymin = float(np.min(values))
-    ymax = float(np.max(values))
-    span = ymax - ymin
-
-    if span <= 0:
-        pad = max(min_pad, 0.05 * abs(ymax) if ymax != 0 else min_pad)
-    else:
-        pad = max(frac * span, min_pad)
-
-    return ymin - pad, ymax + pad
-
-
-def load_figure_7_data():
-    if not DATA_7_PATH.exists():
-        raise FileNotFoundError(f"{DATA_7_PATH} not found.")
-
-    df = pd.read_csv(DATA_7_PATH)
-
-    required = [
-        "N",
-        "kappa",
-        "r_fixed",
-        "D_mean",
-        "D_sem",
-    ]
-
-    require_columns(df, required, DATA_7_PATH)
-
-    return df.sort_values(["N", "kappa"]).reset_index(drop=True)
-
-
-def load_figure_8_data():
-    if not DATA_8_PATH.exists():
-        raise FileNotFoundError(f"{DATA_8_PATH} not found.")
-
-    df = pd.read_csv(DATA_8_PATH)
-
-    required = [
-        "N",
-        "r",
-        "D_low_mean",
-        "D_low_sem",
-        "D_high_mean",
-        "D_high_sem",
-        "Delta_mean",
-        "Delta_sem",
-    ]
-
-    require_columns(df, required, DATA_8_PATH)
-
-    return df.sort_values(["N", "r"]).reset_index(drop=True)
-
-
-def make_figure_7(df7, df8):
-    set_plot_style()
-
-    fig, axes = plt.subplots(
-        1, 2,
-        figsize=(13.2, 5.8),
-        constrained_layout=False,
-    )
-    fig.subplots_adjust(wspace=0.25)
-
-    ax_left, ax_right = axes
-
-    all_y_left = []
-
-    for idx, N in enumerate(sorted(df7["N"].unique())):
-        N_int = int(N)
-        color = get_color_for_N(N_int, idx)
-        sub = df7[df7["N"] == N].sort_values("kappa")
-
-        x = sub["kappa"].to_numpy()
-        y = sub["D_mean"].to_numpy()
-        err = sub["D_sem"].to_numpy()
-
-        all_y_left.extend((y - err).tolist())
-        all_y_left.extend((y + err).tolist())
-
-        ax_left.plot(
-            x,
-            y,
-            color=color,
-            lw=2.8,
-            marker="o",
-            markersize=4.2,
-            markevery=max(1, len(x) // 12),
-            label=rf"$N={N_int}$",
-            zorder=3,
-        )
-
-        ax_left.fill_between(
-            x,
-            y - err,
-            y + err,
-            color=color,
-            alpha=0.17,
-            linewidth=0.0,
-            zorder=2,
-        )
-
-    ax_left.set_xlabel(r"$\kappa$")
-    ax_left.set_ylabel(r"$D_N(r=2,\kappa)$")
-
-    x_min = df7["kappa"].min()
-    x_max = df7["kappa"].max()
-    x_pad = 0.015 * (x_max - x_min)
-    ax_left.set_xlim(x_min - x_pad, x_max + x_pad)
-
-    y_low, y_high = padded_limits(all_y_left, frac=0.06, min_pad=0.015)
-    ax_left.set_ylim(max(0.0, y_low), y_high)
-
-    style_axes(ax_left)
-
-    ax_left.legend(
-        loc="upper left",
-        fontsize=13,
-        frameon=True,
-        framealpha=0.94,
-        facecolor="white",
-        edgecolor="0.82",
-        handlelength=2.1,
-        borderpad=0.75,
-        labelspacing=0.60,
-        handletextpad=0.75,
-    )
-
-    all_y_right = []
-
-    for idx, N in enumerate(sorted(df8["N"].unique())):
-        N_int = int(N)
-        color = get_color_for_N(N_int, idx)
-        sub = df8[df8["N"] == N].sort_values("r")
-
-        x = sub["r"].to_numpy()
-        y = sub["Delta_mean"].to_numpy()
-        err = sub["Delta_sem"].to_numpy()
-
-        all_y_right.extend((y - err).tolist())
-        all_y_right.extend((y + err).tolist())
-
-        ax_right.plot(
-            x,
-            y,
-            color=color,
-            lw=2.8,
-            marker="o",
-            markersize=5.0,
-            label=rf"$N={N_int}$",
-            zorder=3,
-        )
-
-        ax_right.fill_between(
-            x,
-            y - err,
-            y + err,
-            color=color,
-            alpha=0.17,
-            linewidth=0.0,
-            zorder=2,
-        )
-
-    ax_right.set_xlabel(r"$r$")
-    ax_right.set_ylabel(r"$\Delta D_N(r)$")
-
-    r_min = df8["r"].min()
-    r_max = df8["r"].max()
-    r_pad = 0.03 * (r_max - r_min)
-    ax_right.set_xlim(r_min - r_pad, r_max + r_pad)
-
-    y_low, y_high = padded_limits(all_y_right, frac=0.10, min_pad=0.035)
-    ax_right.set_ylim(y_low, y_high)
-
-    style_axes(ax_right)
-
-    ax_right.legend(
-        loc="upper right",
-        fontsize=13,
-        frameon=True,
-        framealpha=0.94,
-        facecolor="white",
-        edgecolor="0.82",
-        handlelength=2.1,
-        borderpad=0.75,
-        labelspacing=0.60,
-        handletextpad=0.75,
-    )
-
-    fig.savefig(FIGURE_7_PNG, dpi=600, bbox_inches="tight")
-    fig.savefig(FIGURE_7_PDF, dpi=600, bbox_inches="tight")
-    plt.close(fig)
-
-
-def plot_figure_8_curve(ax, x, y, err, r_value, panel="low", zorder_override=None):
-    color = BROWN_R_COLORS[r_value]
-    marker = R_MARKERS[r_value]
-    msize = R_MARKER_SIZES[r_value]
-
-    alpha_fill = 0.12 if panel == "low" else 0.08
-
-    if zorder_override is None:
-        z_line = 5 + int(r_value)
-    else:
-        z_line = zorder_override
-
-    ax.fill_between(
-        x,
-        y - err,
-        y + err,
-        color=color,
-        alpha=alpha_fill,
-        linewidth=0.0,
-        zorder=max(1, z_line - 2),
-    )
-
-    ax.plot(
-        x,
-        y,
-        color=color,
-        lw=2.7,
-        linestyle="solid",
-        marker=marker,
-        markersize=msize,
-        markerfacecolor="white",
-        markeredgecolor=color,
-        markeredgewidth=MARKER_EDGE_WIDTH,
-        zorder=z_line,
-        label=rf"$r={int(r_value)}$",
-    )
-
-
-def make_figure_8(df8):
-    set_plot_style()
-
-    fig, axes = plt.subplots(
-        1, 2,
-        figsize=(12.6, 5.8),
-        sharey=False,
-        constrained_layout=False,
-    )
-    fig.subplots_adjust(wspace=0.15)
-
-    ax_low, ax_high = axes
-
-    selected_r = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
-
-    N_values = sorted(df8["N"].unique())
-    N_array = np.array(N_values, dtype=float)
-    N_pad = 0.03 * (np.max(N_array) - np.min(N_array))
-
-    all_y_low = []
-
-    for r_value in selected_r:
-        sub = df8[np.isclose(df8["r"], r_value)].sort_values("N")
-
-        if len(sub) == 0:
-            continue
-
-        x = sub["N"].to_numpy()
-        y = sub["D_low_mean"].to_numpy()
-        err = sub["D_low_sem"].to_numpy()
-
-        all_y_low.extend((y - err).tolist())
-        all_y_low.extend((y + err).tolist())
-
-        plot_figure_8_curve(ax_low, x, y, err, r_value, panel="low")
-
-    ax_low.set_xlabel(r"$N$")
-    ax_low.set_ylabel(r"$D_N$")
-    ax_low.set_title(r"Weak coupling: $\kappa\in[0,0.5]$")
-
-    ax_low.set_xlim(np.min(N_array) - N_pad, np.max(N_array) + N_pad)
-    ax_low.set_xticks(N_array)
-
-    y_low_min, y_low_max = padded_limits(all_y_low, frac=0.08, min_pad=0.03)
-    ax_low.set_ylim(y_low_min, y_low_max)
-
-    style_axes(ax_low)
-
-    ax_low.legend(
-        loc="upper left",
-        bbox_to_anchor=(0.04, 0.84),
-        frameon=True,
-        framealpha=0.94,
-        facecolor="white",
-        edgecolor="0.82",
-        handlelength=2.2,
-        borderpad=0.65,
-        labelspacing=0.50,
-        handletextpad=0.70,
-    )
-
-    all_y_high = []
-    plot_order_high = [1.0, 2.0, 3.0, 4.0, 6.0, 5.0]
-
-    for r_value in plot_order_high:
-        sub = df8[np.isclose(df8["r"], r_value)].sort_values("N")
-
-        if len(sub) == 0:
-            continue
-
-        x = sub["N"].to_numpy()
-        y = sub["D_high_mean"].to_numpy()
-        err = sub["D_high_sem"].to_numpy()
-
-        all_y_high.extend((y - err).tolist())
-        all_y_high.extend((y + err).tolist())
-
-        if r_value == 6.0:
-            z_override = 8
-        elif r_value == 5.0:
-            z_override = 12
-        else:
-            z_override = 9 + int(r_value)
-
-        plot_figure_8_curve(
-            ax_high,
-            x,
-            y,
-            err,
-            r_value,
-            panel="high",
-            zorder_override=z_override,
-        )
-
-    ax_high.set_xlabel(r"$N$")
-    ax_high.set_title(r"Strong coupling: $\kappa\in[5.5,6]$")
-
-    ax_high.set_xlim(np.min(N_array) - N_pad, np.max(N_array) + N_pad)
-    ax_high.set_xticks(N_array)
-
-    y_high_min, y_high_max = padded_limits(all_y_high, frac=0.08, min_pad=0.04)
-    ax_high.set_ylim(y_high_min, y_high_max)
-
-    style_axes(ax_high)
-
-    fig.savefig(FIGURE_8_PNG, dpi=600, bbox_inches="tight")
-    fig.savefig(FIGURE_8_PDF, dpi=600, bbox_inches="tight")
-    plt.close(fig)
-
-
 def main():
-    cfg, jobs, plot_only = parse_args()
+    cfg, jobs = parse_args()
 
-    if RUN_SIMULATION and not plot_only:
-        results = run_combined_sweep(cfg, jobs)
+    results = run_combined_sweep(cfg, jobs)
 
-        save_figure_7_data(
-            cfg,
-            results["K_ratios"],
-            results["N_values"],
-            results["D_curve_mean_fixed_r"],
-            results["D_curve_std_fixed_r"],
-        )
+    save_drift_vs_kappa_data(
+        cfg,
+        results["K_ratios"],
+        results["N_values"],
+        results["D_curve_mean_fixed_r"],
+        results["D_curve_std_fixed_r"],
+    )
 
-        save_figure_8_data(
-            cfg,
-            results["r_values"],
-            results["N_values"],
-            results["D_low_mean"],
-            results["D_low_std"],
-            results["D_high_mean"],
-            results["D_high_std"],
-            results["Delta_mean"],
-            results["Delta_std"],
-        )
+    save_coupling_windows_data(
+        cfg,
+        results["r_values"],
+        results["N_values"],
+        results["D_low_mean"],
+        results["D_low_std"],
+        results["D_high_mean"],
+        results["D_high_std"],
+        results["Delta_mean"],
+        results["Delta_std"],
+    )
 
-    df7 = load_figure_7_data()
-    df8 = load_figure_8_data()
-
-    make_figure_7(df7, df8)
-    make_figure_8(df8)
+    print("\nFinite-size datasets saved:")
+    print(f"  {DRIFT_VS_KAPPA_PATH}")
+    print(f"  {COUPLING_WINDOWS_PATH}")
 
 
 if __name__ == "__main__":
