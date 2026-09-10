@@ -497,7 +497,7 @@ bx1.text(
     bbox=text_box,
 )
 
-bx1.set_title(r"(a) Locked ($a=1.5$)")
+bx1.set_title(r"(a) Pinned ($a=1.5$)")
 bx1.set_xlabel(r"$t$")
 bx1.set_ylabel(r"$\theta_i\;(\mathrm{mod}\;2\pi)$")
 bx1.set_xlim(0, T_plot_locked)

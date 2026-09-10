@@ -196,10 +196,7 @@ def try_matrix_csv(path):
 
 
 def locate_heatmap():
-    csvs = [
-        p for p in DATA_DIR.rglob("*.csv")
-        if "stationary_mean_field_boundary" not in p.name.lower()
-    ]
+    csvs = [DATA_DIR / "drift_map.csv"]
 
     if not csvs:
         sys.exit(
@@ -658,7 +655,7 @@ def main():
         mf["kappa_c_MF"],
         lw=1.25,
         color="#e5a62f",
-        label="Stationary mean-field boundary",
+        label="Stationary mean-field existence edge",
         zorder=12,
     )
 
