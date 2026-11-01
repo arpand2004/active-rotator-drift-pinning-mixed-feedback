@@ -1,0 +1,21 @@
+{
+  "source_sha256": {
+    "simulate.py": "3eed701ed7310f99dada5617e1456c8b1b3f300ddd0124057cb4581b55ea8f6d",
+    "mf_theory.py": "ea52b19d2806a558f6464f6251ee76b1bf210661a6a2e72631f55f9f2fd5d563",
+    "protocol.py": "502f351296f64b8c0a8fd127bda0af4f06725da5dacdb388c284c5fda373d753",
+    "compare_hysteresis.py": "35ae26ada62f982e05d19b0e6cec50eb9fcd5c3965fc84bfc0106aee2447e1a8",
+    "verify_all.py": "94644df43158b7b6c177aee553a80cc72b79a49b3cc1acd41fe6bccb36181fb4",
+    "preflight.py": "509d96390b75a46662625432a2e240c2ff54590e9552a777539c642da057fece"
+  },
+  "batch_max_absolute_error": 0.0,
+  "initial_hysteresis_max_absolute_error": 0.0,
+  "max_zero_branch_discriminant": -0.011601963602761466,
+  "min_zero_branch_discriminant": -0.05939993737014096,
+  "r_values": 45,
+  "time_protocol": [
+    0.02,
+    300.0,
+    300.0
+  ],
+  "status": "passed"
+}

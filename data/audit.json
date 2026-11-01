@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "datasets": {
+    "hysteresis": 6464,
+    "oscillation_scan": 54096,
+    "cuts": 111650,
+    "oscillation": 616,
+    "map": 467544,
+    "traces": 96
+  },
+  "identical_records_across_modes": {
+    "cuts_vs_oscillation_scan": 34800,
+    "cuts_vs_map": 17400,
+    "oscillation_scan_vs_map": 23184,
+    "oscillation_vs_oscillation_scan": 144,
+    "oscillation_vs_traces": 96
+  },
+  "time_protocol": [
+    0.02,
+    0.2,
+    300.0,
+    300.0
+  ],
+  "grid_step": 0.05,
+  "trial_counts": {
+    "100": 64,
+    "200": 24,
+    "400": 24,
+    "800": 16,
+    "1600": 12,
+    "3200": 8,
+    "6400": 6
+  }
+}

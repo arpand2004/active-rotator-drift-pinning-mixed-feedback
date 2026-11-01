@@ -1,0 +1,19 @@
+{
+  "fingerprint": "d2e21f5d5db349d80f7f01ce6bb7550457be06fba8e0a57f6227615adabffeae",
+  "parameters": {
+    "kappa_min": 0.0,
+    "kappa_max": 8.0,
+    "dkappa": 0.05,
+    "rho_start": 9.0,
+    "rho_hard_limit": 40.0,
+    "radial_step": 0.12,
+    "nphi": 120,
+    "nq": 151,
+    "arc_step": 0.06
+  },
+  "r_values": [
+    4.5
+  ],
+  "check": true,
+  "source_sha256": "ea52b19d2806a558f6464f6251ee76b1bf210661a6a2e72631f55f9f2fd5d563"
+}

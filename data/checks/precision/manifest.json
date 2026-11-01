@@ -1,0 +1,53 @@
+{
+  "config": {
+    "disorder_scheme": "antithetic",
+    "mode": "precision",
+    "protocol_sha256": "502f351296f64b8c0a8fd127bda0af4f06725da5dacdb388c284c5fda373d753",
+    "scientific_config": {
+      "N": 40,
+      "eps": [
+        0.0001,
+        0.0003,
+        0.001,
+        0.003,
+        0.01
+      ],
+      "points": [
+        [
+          4.24,
+          2.73
+        ]
+      ],
+      "sample_dt": 0.2,
+      "settings": [
+        [
+          0.02,
+          10.0,
+          10.0
+        ],
+        [
+          0.01,
+          10.0,
+          10.0
+        ],
+        [
+          0.002,
+          10.0,
+          10.0
+        ]
+      ],
+      "trials": 2
+    },
+    "script_sha256": "3eed701ed7310f99dada5617e1456c8b1b3f300ddd0124057cb4581b55ea8f6d",
+    "seed": 55500,
+    "smoke": true
+  },
+  "coupling_normalization": "1/N",
+  "fingerprint": "4eec0abaf942da3192b41ec5f478468e0f73f9df7b5b854d813476eee3f34e6e",
+  "model": "dtheta_i/dtau = 1 - a_i sin(theta_i) + kappa*Im(Z1*exp(-i theta_i))",
+  "numpy": "2.5.4",
+  "omega_definition": "least-squares slope of unwrapped theta_i(tau)",
+  "pandas": "3.1.0",
+  "python": "3.12.12",
+  "spectrum_units": "cycles per dimensionless tau"
+}

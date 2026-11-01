@@ -1,0 +1,41 @@
+{
+  "validation": "Targeted independent Gaussian V3 comparison",
+  "source_sha256": "3eed701ed7310f99dada5617e1456c8b1b3f300ddd0124057cb4581b55ea8f6d",
+  "protocol_sha256": "502f351296f64b8c0a8fd127bda0af4f06725da5dacdb388c284c5fda373d753",
+  "driver_sha256": "96aca6d4a9a495e00bcbc4a2eae3e9671d62fab2affdc97f1d90967de75949e0",
+  "points": {
+    "4.0": [
+      0.0,
+      2.95
+    ],
+    "4.5": [
+      3.0,
+      3.3,
+      6.0,
+      8.0
+    ],
+    "5.0": [
+      3.5,
+      6.0
+    ],
+    "6.0": [
+      3.85,
+      6.0
+    ]
+  },
+  "trials_by_N": {
+    "100": 64,
+    "200": 24,
+    "400": 24,
+    "800": 16,
+    "1600": 12,
+    "3200": 8,
+    "6400": 6
+  },
+  "seed": 55500,
+  "dt": 0.02,
+  "T_transient": 300.0,
+  "T_measure": 300.0,
+  "disorder_scheme": "iid",
+  "jobs": 616
+}

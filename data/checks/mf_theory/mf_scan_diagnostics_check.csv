@@ -1,0 +1,2 @@
+r,branches,folds,roots,used_rho_max,used_nrho,grid_nphi,max_root_residual,max_fold_residual,attempts,all_stationary_roots_stability_classified
+4.5,1,2,125,9.0,76,120,2.7465669738546694e-09,9.680900428652783e-09,"[{""rho_max"": 9.0, ""nrho"": 76, ""branches"": 1, ""open"": 0}]",True

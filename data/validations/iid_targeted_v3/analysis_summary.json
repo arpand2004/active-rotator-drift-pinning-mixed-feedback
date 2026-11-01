@@ -1,0 +1,17 @@
+{
+  "status": "completed; scientific interpretation pending",
+  "i_i_d_records": 1540,
+  "matched_pairs": 1540,
+  "size_comparisons": 70,
+  "pinned_size_rows": 42,
+  "extrapolation_rows": 18,
+  "plateau_size_rows": 70,
+  "plateau_fits": 10,
+  "valid_frequency_records": {
+    "paired": 888,
+    "iid": 698
+  },
+  "frequency_normalization": "peak_freq_hann / (abs(psi_rate)/pi)",
+  "design_note": "Matched schemes share the first N/2 Gaussian draws and all initial phases",
+  "zero_sem_note": "Zero SEM floored to the smallest positive size SEM; constant all-zero-SEM series is descriptive, not a confidence interval"
+}
